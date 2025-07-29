@@ -3,11 +3,12 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import DashboardLayout from './layouts/DashboardLayout';
 import Home from './Home';
 import ForgotPage from './loginPages/ForgotPage';
-import Internships from './pages/Internships';
+
 import Applications from './pages/Applications';
 import Profile from './pages/Profile';
 import Reports from './pages/Reports';
-
+import InternshipsDashboard from './pages/InternShips/IntershipDashboard';
+import './App.css'
 
 
 // Create simple page components for your routes
@@ -27,7 +28,7 @@ function App() {
         {/* Dashboard layout with nested routes */}
         <Route path="/" element={<DashboardLayout />}>
           <Route index element={<Dashboard />} />
-          <Route path="Internships" element={<Internships />} />
+          <Route path="Internships" element={<InternshipsDashboard />} />
           <Route path="Applications" element={<Applications />} />
           <Route path="virtual-reality" element={<VirtualReality />} />
           <Route path="Report" element={<Reports />} />

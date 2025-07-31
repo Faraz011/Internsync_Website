@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Plus, Filter, Eye, Edit2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const IntershipDashboard = () => {
   const [currentPage, setCurrentPage] = useState(1);
@@ -121,10 +122,10 @@ const IntershipDashboard = () => {
             <div className="p-4 border-b flex flex-col sm:flex-row justify-between items-start sm:items-center">
               <h2 className="text-lg font-semibold mb-2 sm:mb-0">Internship Management Table</h2>
               <div className="flex space-x-2">
-                <button className="bg-black text-white px-4 py-2 rounded flex items-center">
+                <Link to="/add-internship" className="bg-black text-white px-4 py-2 rounded flex items-center">
                   <Plus size={16} className="mr-2" />
                   ADD INTERNSHIP
-                </button>
+                </Link>
                 <button className="border border-gray-300 px-4 py-2 rounded flex items-center">
                   <Filter size={16} />
                 </button>

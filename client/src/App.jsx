@@ -9,6 +9,7 @@ import Profile from './pages/Profile';
 import Reports from './pages/Reports';
 import InternshipsDashboard from './pages/InternShips/IntershipDashboard';
 import './App.css'
+import InternshipForm from './pages/InternShips/AddInternShip';
 
 
 // Create simple page components for your routes
@@ -29,6 +30,7 @@ function App() {
         <Route path="/" element={<DashboardLayout />}>
           <Route index element={<Dashboard />} />
           <Route path="Internships" element={<InternshipsDashboard />} />
+          <Route path="add-internship" element={<InternshipForm />} />
           <Route path="Applications" element={<Applications />} />
           <Route path="virtual-reality" element={<VirtualReality />} />
           <Route path="Report" element={<Reports />} />

@@ -126,6 +126,15 @@ const IntershipDashboard = () => {
                   <Plus size={16} className="mr-2" />
                   ADD INTERNSHIP
                 </Link>
+                <Link to="/add-extracullicular" className="bg-black text-white px-4 py-2 rounded flex items-center">
+                  <Plus size={16} className="mr-2" />
+                  ADD ExtraClullicular Opportunities
+                </Link>
+                <Link to="/add-volunteer" className="bg-black text-white px-4 py-2 rounded flex items-center">
+                  <Plus size={16} className="mr-2" />
+                  ADD Volunteer Opportunities
+                </Link>
+
                 <button className="border border-gray-300 px-4 py-2 rounded flex items-center">
                   <Filter size={16} />
                 </button>

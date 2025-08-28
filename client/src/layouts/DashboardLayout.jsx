@@ -43,9 +43,9 @@ const menuItems = [
   { text: 'Dashboard', icon: <DashboardIcon />, path: '/', active: true },
   { text: 'Internship', icon: <TableView />, path: '/internships' },
   { text: 'Applications', icon: <Receipt />, path: '/applications' },
-  { text: 'Reports', icon: <ViewInAr />, path: '/reports' },
+
   
-  { text: 'Notifications', icon: <Notifications />, path: '/notifications' },
+  
 ];
 
 const accountPages = [

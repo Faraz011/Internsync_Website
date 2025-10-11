@@ -13,8 +13,18 @@ const api = axios.create({
 // Request interceptor
 api.interceptors.request.use(
   async (config) => {
-    // Get current auth token from service
-    const token = authService.authToken || await authService.getIdToken();
+    // Skip token check for auth endpoints
+    if (config.url.includes('/auth/')) {
+      return config;
+    }
+
+    // Get current auth token
+    let token = authService.authToken;
+    
+    // If no token, try to get a fresh one
+    if (!token) {
+      token = await authService.getIdToken();
+    }
     
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -31,21 +41,28 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
-    // Handle 401 - token expired
-    if (error.response?.status === 401 && authService.isAuthenticated()) {
+    const originalRequest = error.config;
+    
+    // If error is 401 and we haven't tried to refresh the token yet
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+      
       try {
         // Try to refresh the token
-        const newToken = await authService.getIdToken(true);
+        const newToken = await authService.refreshToken();
         
         if (newToken) {
-          // Retry the original request with new token
-          error.config.headers.Authorization = `Bearer ${newToken}`;
-          return api.request(error.config);
+          // Update the Authorization header
+          originalRequest.headers.Authorization = `Bearer ${newToken}`;
+          // Retry the original request with the new token
+          return api(originalRequest);
         }
       } catch (refreshError) {
         console.error('Token refresh failed:', refreshError);
+        // If refresh fails, clear auth state and redirect to login
         await authService.signOut();
         window.location.href = '/login';
+        return Promise.reject(refreshError);
       }
     }
     

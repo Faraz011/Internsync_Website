@@ -1,201 +1,289 @@
-import React, { useState } from 'react';
-import { Eye, Edit2, ChevronLeft, ChevronRight } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Eye, ChevronLeft, ChevronRight, Loader2, FileText, X, Check, Clock, Plus as PlusIcon } from 'lucide-react';
+import { useNavigate, Link } from 'react-router-dom';
+import applicationAPI from '../services/applicationAPI';
 
-const ApplicationsTable = () => {
+const Applications = () => {
   const [currentPage, setCurrentPage] = useState(1);
+  const [applications, setApplications] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [totalPages, setTotalPages] = useState(1);
+  const [statusFilter, setStatusFilter] = useState('ALL');
   const navigate = useNavigate();
 
-  // Sample applications data
-  const applications = [
-    { 
-      id: 'APP001', 
-      applicantName: 'John Doe',
-      position: 'Frontend Developer',
-      company: 'Linear, Jakarta',
-      status: 'pending',
-      appliedDate: '2025-08-25',
-      experience: '2 years'
-    },
-    { 
-      id: 'APP002', 
-      applicantName: 'Sarah Smith',
-      position: 'QA Tester',
-      company: 'Google',
-      status: 'accepted',
-      appliedDate: '2025-08-24',
-      experience: '3 years'
-    },
-    { 
-      id: 'APP003', 
-      applicantName: 'Mike Johnson',
-      position: 'UI Designer',
-      company: 'Notion',
-      status: 'rejected',
-      appliedDate: '2025-08-23',
-      experience: '1 year'
-    },
-    { 
-      id: 'APP004', 
-      applicantName: 'Emily Chen',
-      position: 'Backend Developer',
-      company: 'Stripe',
-      status: 'pending',
-      appliedDate: '2025-08-22',
-      experience: '4 years'
-    },
-    { 
-      id: 'APP005', 
-      applicantName: 'David Wilson',
-      position: 'Data Analyst',
-      company: 'Airbnb',
-      status: 'accepted',
-      appliedDate: '2025-08-21',
-      experience: '2 years'
-    }
-  ];
+  const itemsPerPage = 10;
 
-  const getStatusColor = (status) => {
-    switch (status.toLowerCase()) {
-      case 'accepted': return 'bg-green-100 text-green-800 border-green-200';
-      case 'pending': return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'rejected': return 'bg-red-100 text-red-800 border-red-200';
-      default: return 'bg-gray-100 text-gray-800 border-gray-200';
+  useEffect(() => {
+    const fetchApplications = async () => {
+      try {
+        setLoading(true);
+        const response = await applicationAPI.getUserApplications();
+        setApplications(response.data || []);
+        setTotalPages(Math.ceil((response.data?.length || 0) / itemsPerPage));
+      } catch (err) {
+        console.error('Error fetching applications:', err);
+        setError(err.response?.data?.message || 'Failed to load applications. Please try again.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchApplications();
+  }, []);
+
+  const getStatusBadge = (status) => {
+    const baseStyles = 'px-3 py-1 text-xs font-medium rounded-full flex items-center';
+    
+    switch (status) {
+      case 'PENDING':
+        return (
+          <span className={`${baseStyles} bg-yellow-100 text-yellow-800`}>
+            <Clock className="w-3 h-3 mr-1" /> Pending
+          </span>
+        );
+      case 'ACCEPTED':
+        return (
+          <span className={`${baseStyles} bg-green-100 text-green-800`}>
+            <Check className="w-3 h-3 mr-1" /> Accepted
+          </span>
+        );
+      case 'REJECTED':
+        return (
+          <span className={`${baseStyles} bg-red-100 text-red-800`}>
+            <X className="w-3 h-3 mr-1" /> Rejected
+          </span>
+        );
+      default:
+        return (
+          <span className={`${baseStyles} bg-gray-100 text-gray-800`}>
+            {status}
+          </span>
+        );
     }
   };
 
   const handleRowClick = (applicationId) => {
-    // Navigate to detailed application page
-    navigate(`/applications/${applicationId}`);
+    navigate(`/dashboard/applications/${applicationId}`);
   };
 
-  const Pagination = ({ currentPage, setCurrentPage, totalPages = 5 }) => (
-    <div className="flex items-center justify-center space-x-2 mt-6">
-      <button
-        onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-        className="p-2 hover:bg-gray-100 rounded-lg disabled:opacity-50"
-        disabled={currentPage === 1}
-      >
-        <ChevronLeft size={20} />
-      </button>
-      {[1, 2, 3, 4, 5].map(page => (
+  const handleStatusFilter = (status) => {
+    setStatusFilter(status);
+    setCurrentPage(1);
+  };
+
+  const filteredApplications = applications.filter(app => 
+    statusFilter === 'ALL' || app.status === statusFilter
+  );
+
+  const paginatedApplications = filteredApplications.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  const Pagination = () => (
+    <div className="flex items-center justify-between mt-6 px-4 py-3 border-t border-gray-200">
+      <div className="text-sm text-gray-700">
+        Showing <span className="font-medium">{(currentPage - 1) * itemsPerPage + 1}</span> to{' '}
+        <span className="font-medium">
+          {Math.min(currentPage * itemsPerPage, filteredApplications.length)}
+        </span>{' '}
+        of <span className="font-medium">{filteredApplications.length}</span> results
+      </div>
+      <div className="flex space-x-2">
         <button
-          key={page}
-          onClick={() => setCurrentPage(page)}
-          className={`w-10 h-10 rounded-lg transition-colors ${
-            currentPage === page 
-              ? 'bg-black text-white' 
-              : 'hover:bg-gray-100 text-gray-700'
-          }`}
+          onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+          disabled={currentPage === 1}
+          className="px-3 py-1 border rounded-md text-sm font-medium disabled:opacity-50"
         >
-          {page}
+          Previous
         </button>
-      ))}
-      <span className="px-2 text-gray-500">...</span>
-      <button className="w-10 h-10 rounded-lg hover:bg-gray-100 text-gray-700">40</button>
-      <button
-        onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-        className="p-2 hover:bg-gray-100 rounded-lg disabled:opacity-50"
-        disabled={currentPage === totalPages}
-      >
-        <ChevronRight size={20} />
-      </button>
+        <button
+          onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+          disabled={currentPage === totalPages || totalPages === 0}
+          className="px-3 py-1 border rounded-md text-sm font-medium disabled:opacity-50"
+        >
+          Next
+        </button>
+      </div>
     </div>
   );
 
-  return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Application Reviews</h1>
-          <p className="text-gray-600 mt-2">Manage and review internship applications</p>
-        </div>
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="animate-spin h-8 w-8 text-blue-500" />
+        <span className="ml-2">Loading applications...</span>
+      </div>
+    );
+  }
 
-        {/* Applications Table */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+  if (error) {
+    return (
+      <div className="bg-red-50 border-l-4 border-red-400 p-4">
+        <div className="flex">
+          <div className="flex-shrink-0">
+            <X className="h-5 w-5 text-red-400" />
+          </div>
+          <div className="ml-3">
+            <p className="text-sm text-red-700">{error}</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-6">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">My Applications</h1>
+          <p className="mt-1 text-sm text-gray-500">Track and manage your internship applications</p>
+        </div>
+        <div className="mt-4 md:mt-0">
+          <Link
+            to="/dashboard/Internships"
+            className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          >
+            Apply for New Internship
+          </Link>
+        </div>
+      </div>
+
+      {/* Status Filter */}
+      <div className="flex space-x-2 mb-6 overflow-x-auto pb-2">
+        <button
+          onClick={() => handleStatusFilter('ALL')}
+          className={`px-4 py-2 text-sm font-medium rounded-full ${
+            statusFilter === 'ALL'
+              ? 'bg-blue-100 text-blue-800'
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+          }`}
+        >
+          All Applications
+        </button>
+        <button
+          onClick={() => handleStatusFilter('PENDING')}
+          className={`px-4 py-2 text-sm font-medium rounded-full flex items-center ${
+            statusFilter === 'PENDING'
+              ? 'bg-yellow-100 text-yellow-800'
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+          }`}
+        >
+          <Clock className="w-4 h-4 mr-1" /> Pending
+        </button>
+        <button
+          onClick={() => handleStatusFilter('ACCEPTED')}
+          className={`px-4 py-2 text-sm font-medium rounded-full flex items-center ${
+            statusFilter === 'ACCEPTED'
+              ? 'bg-green-100 text-green-800'
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+          }`}
+        >
+          <Check className="w-4 h-4 mr-1" /> Accepted
+        </button>
+        <button
+          onClick={() => handleStatusFilter('REJECTED')}
+          className={`px-4 py-2 text-sm font-medium rounded-full flex items-center ${
+            statusFilter === 'REJECTED'
+              ? 'bg-red-100 text-red-800'
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+          }`}
+        >
+          <X className="w-4 h-4 mr-1" /> Rejected
+        </button>
+      </div>
+
+      {/* Applications Table */}
+      <div className="bg-white shadow overflow-hidden sm:rounded-lg">
+        {filteredApplications.length === 0 ? (
+          <div className="text-center py-12">
+            <FileText className="mx-auto h-12 w-12 text-gray-400" />
+            <h3 className="mt-2 text-sm font-medium text-gray-900">No applications</h3>
+            <p className="mt-1 text-sm text-gray-500">
+              {statusFilter === 'ALL'
+                ? "You haven't applied to any internships yet."
+                : `You don't have any ${statusFilter.toLowerCase()} applications.`}
+            </p>
+            <div className="mt-6">
+              <Link
+                to="/dashboard/Internships"
+                className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              >
+                <PlusIcon className="-ml-1 mr-2 h-5 w-5" />
+                Browse Internships
+              </Link>
+            </div>
+          </div>
+        ) : (
           <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="bg-gray-50 border-b border-gray-200">
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Application ID</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Applicant</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Position</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Company</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Status</th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Applied Date</th>
-                  
-                <th className="px-6 py-4 text-left text-sm font-semibold text-gray-900">Actions</th>
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Position
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Company
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Applied On
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Status
+                  </th>
+                  <th scope="col" className="relative px-6 py-3">
+                    <span className="sr-only">Actions</span>
+                  </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
-                {applications.map((application) => (
+              <tbody className="bg-white divide-y divide-gray-200">
+                {paginatedApplications.map((application) => (
                   <tr 
-                    key={application.id} 
-                    onClick={() => handleRowClick(application.id)}
-                    className="hover:bg-gray-50 cursor-pointer transition-colors duration-150 group"
+                    key={application._id} 
+                    className="hover:bg-gray-50 cursor-pointer"
+                    onClick={() => handleRowClick(application._id)}
                   >
-                    <td className="px-6 py-4">
-                      <span className="text-sm font-medium text-gray-900 group-hover:text-blue-600">
-                        {application.id}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="text-sm font-medium text-gray-900">{application.applicantName}</div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="text-sm text-gray-700">{application.position}</div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="text-sm text-gray-700">{application.company}</div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(application.status)}`}>
-                        {application.status.charAt(0).toUpperCase() + application.status.slice(1)}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="text-sm text-gray-700">{application.appliedDate}</div>
-                    </td>
-                   
-                    <td className="px-6 py-4">
-                      <div className="flex space-x-3">
-                        <button 
-                          onClick={(e) => {
-                            e.stopPropagation(); // Prevent row click when clicking action buttons
-                            console.log('View application:', application.id);
-                          }}
-                          className="text-blue-600 hover:text-blue-800 transition-colors"
-                          title="View Application"
-                        >
-                          <Eye size={16} />
-                        </button>
-                        <button 
-                          onClick={(e) => {
-                            e.stopPropagation(); // Prevent row click when clicking action buttons
-                            console.log('Edit application:', application.id);
-                          }}
-                          className="text-gray-600 hover:text-gray-800 transition-colors"
-                          title="Edit Application"
-                        >
-                          <Edit2 size={16} />
-                        </button>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-medium text-gray-900">
+                        {application.jobId?.title || 'Position not available'}
                       </div>
+                      <div className="text-sm text-gray-500">
+                        {application.applicantName}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">
+                        {application.jobId?.company || 'Company not specified'}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {new Date(application.createdAt).toLocaleDateString()}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {getStatusBadge(application.status)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleRowClick(application._id);
+                        }}
+                        className="text-blue-600 hover:text-blue-900"
+                      >
+                        View Details
+                      </button>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
+            <Pagination />
           </div>
-          
-          {/* Pagination */}
-          <div className="px-6 py-4 border-t border-gray-200">
-            <Pagination currentPage={currentPage} setCurrentPage={setCurrentPage} />
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );
 };
 
-export default ApplicationsTable;
+export default Applications;

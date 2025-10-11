@@ -13,10 +13,8 @@ import {
   ListItemButton,
   ListItemIcon,
   ListItemText,
-  Avatar,
   Menu,
   MenuItem,
-  Badge,
   InputBase,
   Paper,
 } from '@mui/material';
@@ -25,14 +23,10 @@ import {
   Dashboard as DashboardIcon,
   TableView,
   Receipt,
-  ViewInAr,
-  FormatTextdirectionRToL,
-  Notifications,
   Person,
   Login,
   Assignment,
   Search,
-  Settings,
   AccountCircle,
 } from '@mui/icons-material';
 import { Outlet, useNavigate, useLocation } from 'react-router-dom';
@@ -40,9 +34,9 @@ import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 const drawerWidth = 240;
 
 const menuItems = [
-  { text: 'Dashboard', icon: <DashboardIcon />, path: '/', active: true },
-  { text: 'Internship', icon: <TableView />, path: '/internships' },
-  { text: 'Applications', icon: <Receipt />, path: '/applications' },
+  { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard', active: true },
+  { text: 'Internship', icon: <TableView />, path: '/dashboard/Internships' },
+  { text: 'Applications', icon: <Receipt />, path: '/dashboard/Applications' },
 
   
   
@@ -173,15 +167,9 @@ function DashboardLayout() {
           >
             <InputBase
               sx={{ ml: 1, flex: 1, fontSize: '0.875rem' }}
-              placeholder="Type here..."
+              placeholder="Search..."
             />
           </Paper>
-
-          <IconButton sx={{ color: '#344767', mr: 1 }}>
-            <Badge badgeContent={4} color="error">
-              <Notifications />
-            </Badge>
-          </IconButton>
           
           <IconButton
             onClick={handleProfileMenuOpen}

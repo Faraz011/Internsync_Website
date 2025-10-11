@@ -5,6 +5,7 @@ import logoImg from '../assets/logo.svg';
 import internImg from '../assets/intern-sync.svg';
 import { useAuth } from '../hooks/useAuth';
 
+
 function Home() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -22,7 +23,7 @@ function Home() {
     try {
       // Use the signIn method from authService via useAuth hook
       await signIn(email, password);
-      navigate('/'); // Navigate to dashboard instead of '/'
+      navigate('/dashboard'); // Navigate to dashboard instead of '/'
     } catch (error) {
       setError(error.message); // Error is already formatted by authService
     } finally {

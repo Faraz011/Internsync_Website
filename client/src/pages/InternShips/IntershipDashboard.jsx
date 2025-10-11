@@ -122,15 +122,15 @@ const IntershipDashboard = () => {
             <div className="p-4 border-b flex flex-col sm:flex-row justify-between items-start sm:items-center">
               <h2 className="text-lg font-semibold mb-2 sm:mb-0">Internship Management Table</h2>
               <div className="flex space-x-2">
-                <Link to="/add-internship" className="bg-black text-white px-4 py-2 rounded flex items-center">
+                <Link to="/dashboard/Internships/add-internship" className="bg-black text-white px-4 py-2 rounded flex items-center">
                   <Plus size={16} className="mr-2" />
                   ADD INTERNSHIP
                 </Link>
-                <Link to="/add-extracullicular" className="bg-black text-white px-4 py-2 rounded flex items-center">
+                <Link to="/dashboard/Internships/add-extracullicular" className="bg-black text-white px-4 py-2 rounded flex items-center">
                   <Plus size={16} className="mr-2" />
                   ADD ExtraClullicular Opportunities
                 </Link>
-                <Link to="/add-volunteer" className="bg-black text-white px-4 py-2 rounded flex items-center">
+                <Link to="/dashboard/Internships/add-volunteer" className="bg-black text-white px-4 py-2 rounded flex items-center">
                   <Plus size={16} className="mr-2" />
                   ADD Volunteer Opportunities
                 </Link>

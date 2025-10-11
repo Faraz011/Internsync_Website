@@ -139,31 +139,43 @@ class AuthService {
       throw this.handleFirebaseError(error);
     }
   }
-
   // Generate 6-digit OTP
   generateOTP() {
     return Math.floor(100000 + Math.random() * 900000).toString();
   }
 
-  // Get fresh auth token
+  // Get current user's ID token
   async getIdToken(forceRefresh = false) {
-    if (this.user) {
-      try {
-        const token = await this.user.getIdToken(forceRefresh);
+    try {
+      const currentUser = this.auth.currentUser;
+      if (currentUser) {
+        const token = await currentUser.getIdToken(forceRefresh);
         this.authToken = token;
-        localStorage.setItem('authToken', token);
         return token;
-      } catch (error) {
-        console.error('Error getting ID token:', error);
-        return null;
       }
+      return null;
+    } catch (error) {
+      console.error('Error getting ID token:', error);
+      this.authToken = null;
+      return null;
     }
-    return null;
   }
 
-  // Check if user is authenticated
-  isAuthenticated() {
-    return !!this.user;
+  // Force refresh the token
+  async refreshToken() {
+    try {
+      const currentUser = this.auth.currentUser;
+      if (currentUser) {
+        const token = await currentUser.getIdToken(true); // Force refresh
+        this.authToken = token;
+        return token;
+      }
+      return null;
+    } catch (error) {
+      console.error('Error refreshing token:', error);
+      this.authToken = null;
+      return null;
+    }
   }
 
   // Handle Firebase errors
